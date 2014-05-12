@@ -52,6 +52,7 @@
 #include <graphlab/aggregation/distributed_aggregator.hpp>
 #include <graphlab/parallel/fiber_remote_request.hpp>
 #include <graphlab/macros_def.hpp>
+#include <linux/seqlock.h>
 
 
 
@@ -331,6 +332,9 @@ namespace graphlab {
     /// Per vertex data locks
     std::vector<simple_spinlock> vertexlocks;
 
+	/// Per vertex data seqlocks
+	std::vector<seqlock_t> vertexseqlocks;
+
     /// Total update function completion time
     std::vector<double> total_completion_time;
 
@@ -543,6 +547,7 @@ namespace graphlab {
       scheduler_ptr->set_num_vertices(graph.num_local_vertices());
       messages.resize(graph.num_local_vertices());
       vertexlocks.resize(graph.num_local_vertices());
+	  vertexseqlocks.resize(graph.num_local_vertices());
       program_running.resize(graph.num_local_vertices());
       hasnext.resize(graph.num_local_vertices());
       if (use_cache) {
@@ -553,6 +558,9 @@ namespace graphlab {
       if (!factorized_consistency) {
         cm_handles.resize(graph.num_local_vertices());
       }
+	  for(int i = 0; i < vertexseqlocks.size(); i++) {
+	  	seqlock_init(&vertexseqlocks[i]);
+	  }
       rmi.barrier();
     }
 
@@ -879,7 +887,8 @@ namespace graphlab {
       vertex_type vertex(local_vertex);
       context_type context(*this, graph);
       edge_dir_type gather_dir = vprog.gather_edges(context, vertex);
-      conditional_gather_type accum;
+      conditional_gather_type accum, temp_accm;
+	  unsigned int seq_num0 = 0, seq_num1 = 0 ;
 
       //check against the cache
       if( use_cache && has_cache.get(lvid) ) {
@@ -891,23 +900,41 @@ namespace graphlab {
         foreach(local_edge_type local_edge, local_vertex.in_edges()) {
           edge_type edge(local_edge);
           lvid_type a = edge.source().local_id(), b = edge.target().local_id();
-          vertexlocks[std::min(a,b)].lock();
-          vertexlocks[std::max(a,b)].lock();
-          accum += vprog.gather(context, vertex, edge);
-          vertexlocks[a].unlock();
-          vertexlocks[b].unlock();
-        }
+          //vertexlocks[std::min(a,b)].lock();
+          //vertexlocks[std::max(a,b)].lock();
+		  do {
+		  	seq_num0 = read_seqbegin(&(vertexseqlocks[std::min(a,b)]));
+			seq_num1 = read_seqbegin(&(vertexseqlocks[std::max(a,b)]));
+		  	temp_accm = vprog.gather(context, vertex, edge);
+		  }
+		  while(read_seqretry(&(vertexseqlocks[std::min(a,b)]), seq_num0)
+			&&read_seqretry(&(vertexseqlocks[std::min(a,b)]), seq_num1) );
+		  accum += temp_accm; 	  	
+          //vertexlocks[a].unlock();
+          //vertexlocks[b].unlock();
+        } 
+		
       } 
       // do out edges
       if(gather_dir == OUT_EDGES || gather_dir == ALL_EDGES) {
         foreach(local_edge_type local_edge, local_vertex.out_edges()) {
           edge_type edge(local_edge);
           lvid_type a = edge.source().local_id(), b = edge.target().local_id();
-          vertexlocks[std::min(a,b)].lock();
-          vertexlocks[std::max(a,b)].lock();
-          accum += vprog.gather(context, vertex, edge);
-          vertexlocks[a].unlock();
-          vertexlocks[b].unlock();
+          //vertexlocks[std::min(a,b)].lock();
+          //vertexlocks[std::max(a,b)].lock();
+
+		  do {
+			  seq_num0 = read_seqbegin(&(vertexseqlocks[std::min(a,b)]));
+			  seq_num1 = read_seqbegin(&(vertexseqlocks[std::max(a,b)]));
+			  temp_accm = vprog.gather(context, vertex, edge);
+		  }
+		  while(read_seqretry(&(vertexseqlocks[std::min(a,b)]), seq_num0)
+			&&read_seqretry(&(vertexseqlocks[std::min(a,b)]), seq_num1) );
+		  accum += temp_accm; 	
+		  
+          //accum += vprog.gather(context, vertex, edge);
+          //vertexlocks[a].unlock();
+          //vertexlocks[b].unlock();
         }
       } 
       if (use_cache) {
@@ -923,26 +950,41 @@ namespace graphlab {
       vertex_type vertex(local_vertex);
       context_type context(*this, graph);
       edge_dir_type scatter_dir = vprog.scatter_edges(context, vertex);
+	  unsigned int seq_num0 = 0, seq_num1 = 0 ;
+	  
       if(scatter_dir == IN_EDGES || scatter_dir == ALL_EDGES) {
         foreach(local_edge_type local_edge, local_vertex.in_edges()) {
           edge_type edge(local_edge);
           lvid_type a = edge.source().local_id(), b = edge.target().local_id();
-          vertexlocks[std::min(a,b)].lock();
-          vertexlocks[std::max(a,b)].lock();
-          vprog.scatter(context, vertex, edge);
-          vertexlocks[a].unlock();
-          vertexlocks[b].unlock();
+          //vertexlocks[std::min(a,b)].lock();
+          //vertexlocks[std::max(a,b)].lock();
+          do {
+			  seq_num0 = read_seqbegin(&(vertexseqlocks[std::min(a,b)]));
+			  seq_num1 = read_seqbegin(&(vertexseqlocks[std::max(a,b)]));
+			  vprog.scatter(context, vertex, edge);
+		  }
+		  while(read_seqretry(&(vertexseqlocks[std::min(a,b)]), seq_num0)
+			&&read_seqretry(&(vertexseqlocks[std::min(a,b)]), seq_num1) );
+          //vertexlocks[a].unlock();
+          //vertexlocks[b].unlock();
         }
       } 
       if(scatter_dir == OUT_EDGES || scatter_dir == ALL_EDGES) {
         foreach(local_edge_type local_edge, local_vertex.out_edges()) {
           edge_type edge(local_edge);
           lvid_type a = edge.source().local_id(), b = edge.target().local_id();
-          vertexlocks[std::min(a,b)].lock();
-          vertexlocks[std::max(a,b)].lock();
-          vprog.scatter(context, vertex, edge);
-          vertexlocks[a].unlock();
-          vertexlocks[b].unlock();
+          //vertexlocks[std::min(a,b)].lock();
+          //vertexlocks[std::max(a,b)].lock();
+          //vprog.scatter(context, vertex, edge);
+          //vertexlocks[a].unlock();
+          //vertexlocks[b].unlock();
+          do {
+			  seq_num0 = read_seqbegin(&(vertexseqlocks[std::min(a,b)]));
+			  seq_num1 = read_seqbegin(&(vertexseqlocks[std::max(a,b)]));
+			  vprog.scatter(context, vertex, edge);
+		  }
+		  while(read_seqretry(&(vertexseqlocks[std::min(a,b)]), seq_num0)
+			&&read_seqretry(&(vertexseqlocks[std::min(a,b)]), seq_num1) );
         }
       } 
 
@@ -959,7 +1001,9 @@ namespace graphlab {
       vertex_program_type vprog = vprog_;
       lvid_type lvid = graph.local_vid(vid);
       vertexlocks[lvid].lock();
+      write_seqlock(&(vertexseqlocks[lvid]));
       graph.l_vertex(lvid).data() = newdata;
+	  write_sequnlock(&(vertexseqlocks[lvid]));
       vertexlocks[lvid].unlock();
       perform_scatter_local(lvid, vprog);
     }
@@ -1079,9 +1123,11 @@ namespace graphlab {
      /**************************************************************************/
      /*                              apply phase                               */
      /**************************************************************************/
-     vertexlocks[lvid].lock();
-     vprog.apply(context, vertex, gather_result.value);      
-     vertexlocks[lvid].unlock();
+     //vertexlocks[lvid].lock();
+     write_seqlock(&(vertexseqlocks[lvid]));
+     vprog.apply(context, vertex, gather_result.value); \
+	 write_sequnlock(&(vertexseqlocks[lvid]));
+     //vertexlocks[lvid].unlock();
 
 
      /**************************************************************************/
