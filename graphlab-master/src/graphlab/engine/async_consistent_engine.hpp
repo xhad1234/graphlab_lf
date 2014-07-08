@@ -27,6 +27,7 @@
 #define GRAPHLAB_ASYNC_CONSISTENT_ENGINE
 
 #include <deque>
+#include <map>
 #include <boost/bind.hpp>
 
 #include <graphlab/scheduler/ischeduler.hpp>
@@ -594,6 +595,8 @@ namespace graphlab {
  **************************************************************************/
 
   private:
+	//seqnums for each vertexes;
+  	std::map<vertex_id_type,size_t> seqnums;
 
     /**
      * \internal
@@ -891,11 +894,11 @@ namespace graphlab {
         foreach(local_edge_type local_edge, local_vertex.in_edges()) {
           edge_type edge(local_edge);
           lvid_type a = edge.source().local_id(), b = edge.target().local_id();
-          vertexlocks[std::min(a,b)].lock();
-          vertexlocks[std::max(a,b)].lock();
+          //vertexlocks[std::min(a,b)].lock();
+          //vertexlocks[std::max(a,b)].lock();
           accum += vprog.gather(context, vertex, edge);
-          vertexlocks[a].unlock();
-          vertexlocks[b].unlock();
+          //vertexlocks[a].unlock();
+          //vertexlocks[b].unlock();
         }
       } 
       // do out edges
@@ -903,11 +906,11 @@ namespace graphlab {
         foreach(local_edge_type local_edge, local_vertex.out_edges()) {
           edge_type edge(local_edge);
           lvid_type a = edge.source().local_id(), b = edge.target().local_id();
-          vertexlocks[std::min(a,b)].lock();
-          vertexlocks[std::max(a,b)].lock();
+          //vertexlocks[std::min(a,b)].lock();
+          //vertexlocks[std::max(a,b)].lock();
           accum += vprog.gather(context, vertex, edge);
-          vertexlocks[a].unlock();
-          vertexlocks[b].unlock();
+          //vertexlocks[a].unlock();
+          //vertexlocks[b].unlock();
         }
       } 
       if (use_cache) {
@@ -1079,9 +1082,9 @@ namespace graphlab {
      /**************************************************************************/
      /*                              apply phase                               */
      /**************************************************************************/
-     vertexlocks[lvid].lock();
+     //vertexlocks[lvid].lock();
      vprog.apply(context, vertex, gather_result.value);      
-     vertexlocks[lvid].unlock();
+     //vertexlocks[lvid].unlock();
 
 
      /**************************************************************************/

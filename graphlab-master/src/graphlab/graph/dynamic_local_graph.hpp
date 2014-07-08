@@ -81,6 +81,8 @@ namespace graphlab {
   private:
     class edge_iterator;
 
+	class rcu_vertex_data;
+
   public:
     typedef boost::iterator_range<edge_iterator> edge_list_type;
 
@@ -110,6 +112,10 @@ namespace graphlab {
       return true;
     }
 
+	void slice(lvid_type v) {
+		vertices[v].slice();
+	}
+
     /**
      * \brief Resets the local_graph state.
      */
@@ -118,7 +124,7 @@ namespace graphlab {
       edges.clear();
       _csc_storage.clear();
       _csr_storage.clear();
-      std::vector<VertexData>().swap(vertices);
+      std::vector<rcu_vertex_data>().swap(vertices);
       std::vector<EdgeData>().swap(edges);
       edge_buffer.clear();
     }
@@ -149,7 +155,7 @@ namespace graphlab {
         }
         vertices.resize(vid+1);
       }
-      vertices[vid] = vdata;
+      vertices[vid].data() = vdata;
     } // End of add vertex;
 
     void reserve(size_t num_vertices) {
@@ -241,13 +247,13 @@ namespace graphlab {
     /** \brief Returns a reference to the data stored on the vertex v. */
     VertexData& vertex_data(lvid_type v) {
       ASSERT_LT(v, vertices.size());
-      return vertices[v];
+      return vertices[v].data();
     } // end of data(v)
 
     /** \brief Returns a constant reference to the data stored on the vertex v. */
     const VertexData& vertex_data(lvid_type v) const {
       ASSERT_LT(v, vertices.size());
-      return vertices[v];
+      return vertices[v].data();
     } // end of data(v)
 
     /**
@@ -480,7 +486,7 @@ namespace graphlab {
      * \brief Returns the estimated memory footprint of the local_graph. */
     size_t estimate_sizeof() const {
       const size_t vlist_size = sizeof(vertices) +
-        sizeof(VertexData) * vertices.capacity();
+        sizeof(rcu_vertex_data) * vertices.capacity();
       size_t elist_size = _csr_storage.estimate_sizeof()
           + _csc_storage.estimate_sizeof()
           + sizeof(edges) + sizeof(EdgeData)*edges.capacity();
@@ -516,7 +522,8 @@ namespace graphlab {
     // PRIVATE DATA MEMBERS ===================================================>
     //
     /** The vertex data is simply a vector of vertex data */
-    std::vector<VertexData> vertices;
+    std::vector<rcu_vertex_data> vertices;
+	
 
     /** Stores the edge data and edge relationships. */
     csr_type _csr_storage;
@@ -553,6 +560,33 @@ namespace graphlab {
 /////////////////////// Implementation of Helper Class ////////////////////////////
 
 namespace graphlab {
+
+
+  template<typename VertexData, typename EdgeData>
+  class dynamic_local_graph<VertexData, EdgeData>::rcu_vertex_data {
+  	public:
+		rcu_vertex_data(const VertexData& vdata = VertexData()) :index(0) {
+			stock[0] = vdata;
+		}
+		const VertexData& data() const{
+			return stock[index];
+		}
+
+		VertexData& data() {
+			return stock[index];
+		}
+
+		void slice() {
+			int temp = (1+index)%3;
+			stock[temp] = stock [index];
+			index = temp;
+		}
+			
+	private:
+		VertexData stock[3];
+		int index;
+  };
+  
   template<typename VertexData, typename EdgeData>
   class dynamic_local_graph<VertexData, EdgeData>::vertex_type {
      public:

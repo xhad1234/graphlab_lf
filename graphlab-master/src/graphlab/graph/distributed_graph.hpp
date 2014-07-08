@@ -456,6 +456,10 @@ namespace graphlab {
         return graph_ref.get_local_graph().vertex_data(lvid);
       }
 
+	  void slice() {
+	  	graph_ref.get_local_graph().slice(lvid);
+	  }
+
       /// \brief Returns the number of in edges of the vertex
       size_t num_in_edges() const {
         return graph_ref.l_get_vertex_record(lvid).num_in_edges;
