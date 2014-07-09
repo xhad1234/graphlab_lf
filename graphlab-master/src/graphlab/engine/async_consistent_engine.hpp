@@ -930,22 +930,22 @@ namespace graphlab {
         foreach(local_edge_type local_edge, local_vertex.in_edges()) {
           edge_type edge(local_edge);
           lvid_type a = edge.source().local_id(), b = edge.target().local_id();
-          vertexlocks[std::min(a,b)].lock();
-          vertexlocks[std::max(a,b)].lock();
+          //vertexlocks[std::min(a,b)].lock();
+          //vertexlocks[std::max(a,b)].lock();
           vprog.scatter(context, vertex, edge);
-          vertexlocks[a].unlock();
-          vertexlocks[b].unlock();
+          //vertexlocks[a].unlock();
+          //vertexlocks[b].unlock();
         }
       } 
       if(scatter_dir == OUT_EDGES || scatter_dir == ALL_EDGES) {
         foreach(local_edge_type local_edge, local_vertex.out_edges()) {
           edge_type edge(local_edge);
           lvid_type a = edge.source().local_id(), b = edge.target().local_id();
-          vertexlocks[std::min(a,b)].lock();
-          vertexlocks[std::max(a,b)].lock();
+          //vertexlocks[std::min(a,b)].lock();
+          //vertexlocks[std::max(a,b)].lock();
           vprog.scatter(context, vertex, edge);
-          vertexlocks[a].unlock();
-          vertexlocks[b].unlock();
+          //vertexlocks[a].unlock();
+          //vertexlocks[b].unlock();
         }
       } 
 
@@ -961,9 +961,9 @@ namespace graphlab {
                     const vertex_data_type& newdata) {
       vertex_program_type vprog = vprog_;
       lvid_type lvid = graph.local_vid(vid);
-      vertexlocks[lvid].lock();
+      //vertexlocks[lvid].lock();
       graph.l_vertex(lvid).data() = newdata;
-      vertexlocks[lvid].unlock();
+      //vertexlocks[lvid].unlock();
       perform_scatter_local(lvid, vprog);
     }
 
