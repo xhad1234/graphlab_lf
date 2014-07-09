@@ -581,7 +581,14 @@ namespace graphlab {
 			stock[temp] = stock [index];
 			index = temp;
 		}
-			
+
+		void save(graphlab::oarchive &oarc) const {
+			oarc << stock[0] << stock[1] << stock[2] << index;
+		}
+		void load(graphlab::iarchive &iarc) {
+			iarc >> stock[0] >> stock[1] >> stock[2] >> index;
+		}
+
 	private:
 		VertexData stock[3];
 		int index;
