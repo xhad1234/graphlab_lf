@@ -1083,6 +1083,7 @@ namespace graphlab {
      /*                              apply phase                               */
      /**************************************************************************/
      //vertexlocks[lvid].lock();
+     vertex.silce();
      vprog.apply(context, vertex, gather_result.value);      
      //vertexlocks[lvid].unlock();
 
