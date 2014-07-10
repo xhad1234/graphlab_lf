@@ -456,8 +456,8 @@ namespace graphlab {
         return graph_ref.get_local_graph().vertex_data(lvid);
       }
 
-	  void slice() {
-	  	graph_ref.get_local_graph().slice(lvid);
+	  void slice(const dense_bitset& program_running, edge_dir_type gather_dir) {
+	  	graph_ref.get_local_graph().slice(lvid, program_running, gather_dir);
 	  }
 
       /// \brief Returns the number of in edges of the vertex

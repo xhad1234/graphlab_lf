@@ -112,8 +112,40 @@ namespace graphlab {
       return true;
     }
 
-	void slice(lvid_type v) {
+	void slice(lvid_type v, const dense_bitset& program_running, edge_dir_type gather_dir) {
+		int oldindex = vertices[v].index;
+		//waiting for the new place to be unoccupied 
+		std::vector<vertex_seq> &newvertexseqs = vertices[v].seqnums[(oldindex+1)%4];
+		bool ok = false;
+		while(!ok) {
+			ok = true;
+			for(int i = 0; i < newvertexseqs.size(); i++ ) {
+				lvid_type a= newvertexseqs[i].v;
+				if( newvertexseqs[i].index >= vertices[v].index) {
+					ok = false;
+					break;
+				}
+			}
+		}
+		vertexseqs.clear();
+		
 		vertices[v].slice();
+		
+        std::vector<vertex_seq> &vertexseqs = vertices[v].seqnums[oldindex%4];
+      	if(gather_dir == OUT_EDGES || gather_dir == ALL_EDGES) {
+			foreach(local_edge_type local_edge, in_edges(v)) {
+	          edge_type edge(local_edge);
+	          lvid_type a = edge.source().local_id();
+			  vertexseqs.push_back(vertex_seq(a, vertices[a].index));
+	        }
+      	}
+		if(gather_dir == IN_EDGES || gather_dir == ALL_EDGES) {
+			foreach(local_edge_type local_edge, out_edges(v)) {
+	          edge_type edge(local_edge);
+	          lvid_type a = edge.target().local_id();
+			  vertexseqs.push_back(vertex_seq(a,vertices[a].index));
+	        }
+		}
 	}
 
     /**
@@ -561,36 +593,43 @@ namespace graphlab {
 
 namespace graphlab {
 
+  struct vertex_seq{
+  	public:
+		vertex_seq(lvid_type vid, int i):v(vid), index(i){}
+	  	lvid_type v;
+		int index;
+  };
 
   template<typename VertexData, typename EdgeData>
   class dynamic_local_graph<VertexData, EdgeData>::rcu_vertex_data {
   	public:
 		rcu_vertex_data(const VertexData& vdata = VertexData()) :index(0) {
 			stock[0] = vdata;
+			seqnums.resize(4);
 		}
 		const VertexData& data() const{
-			return stock[index];
+			return stock[index%4];
 		}
 
 		VertexData& data() {
-			return stock[index];
+			return stock[index%4];
 		}
 
 		void slice() {
-			int temp = (1+index)%3;
-			stock[temp] = stock [index];
+			int temp = (1+index);
+			stock[temp%4] = stock [index%4];
 			index = temp;
 		}
 
 		void save(graphlab::oarchive &oarc) const {
-			oarc << stock[0] << stock[1] << stock[2] << index;
+			oarc << stock[0] << stock[1] << stock[2] << stock[3] << index;
 		}
 		void load(graphlab::iarchive &iarc) {
-			iarc >> stock[0] >> stock[1] >> stock[2] >> index;
+			iarc >> stock[0] >> stock[1] >> stock[2] >> stock[3] >> index;
 		}
 
-	private:
-		VertexData stock[3];
+		VertexData stock[4];
+		vector<vector<vertex_seq>> seqnums;
 		int index;
   };
   

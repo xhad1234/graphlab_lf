@@ -1083,7 +1083,8 @@ namespace graphlab {
      /*                              apply phase                               */
      /**************************************************************************/
      //vertexlocks[lvid].lock();
-     vertex.slice();
+     edge_dir_type gather_dir = vprog.gather_edges(context, vertex);
+     vertex.slice(program_running, gather_dir);
      vprog.apply(context, vertex, gather_result.value);      
      //vertexlocks[lvid].unlock();
 
