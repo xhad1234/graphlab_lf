@@ -65,6 +65,13 @@
 
 
 namespace graphlab {
+struct vertex_seq{
+	public:
+		vertex_seq(lvid_type vid, int i):v(vid), index(i){}
+		lvid_type v;
+		int index;
+  };
+
   template<typename VertexData, typename EdgeData>
   class dynamic_local_graph {
   public:
@@ -593,12 +600,6 @@ namespace graphlab {
 
 namespace graphlab {
 
-  struct vertex_seq{
-  	public:
-		vertex_seq(lvid_type vid, int i):v(vid), index(i){}
-	  	lvid_type v;
-		int index;
-  };
 
   template<typename VertexData, typename EdgeData>
   class dynamic_local_graph<VertexData, EdgeData>::rcu_vertex_data {
