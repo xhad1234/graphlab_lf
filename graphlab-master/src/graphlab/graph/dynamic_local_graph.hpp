@@ -128,7 +128,7 @@ struct vertex_seq{
 			ok = true;
 			for(int i = 0; i < newvertexseqs.size(); i++ ) {
 				lvid_type a= newvertexseqs[i].v;
-				if( newvertexseqs[i].index >= vertices[v].index) {
+				if( newvertexseqs[i].index >= vertices[a].index) {
 					ok = false;
 					break;
 				}
