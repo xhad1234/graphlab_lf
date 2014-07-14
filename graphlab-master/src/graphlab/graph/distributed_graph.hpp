@@ -384,6 +384,8 @@ namespace graphlab {
 #else 
     typedef graphlab::local_graph<VertexData, EdgeData> local_graph_type;
 #endif
+
+	typedef local_graph_type::rcu_vertex_data rcu_vertex_data;
     typedef graphlab::distributed_graph<VertexData, EdgeData> graph_type;
 
     typedef std::vector<simple_spinlock> lock_manager_type;
@@ -427,6 +429,7 @@ namespace graphlab {
       typedef distributed_graph graph_type;
       distributed_graph& graph_ref;
       lvid_type lvid;
+	  bool isread;
 
       /// \cond GRAPHLAB_INTERNAL
       /** \brief Constructs a vertex_type object with local vid
@@ -437,7 +440,10 @@ namespace graphlab {
        * \param lvid The local VID of the vertex to be accessed
        */
       vertex_type(distributed_graph& graph_ref, lvid_type lvid):
-            graph_ref(graph_ref), lvid(lvid) { }
+            graph_ref(graph_ref), lvid(lvid), isread(true) { }
+
+	   vertex_type(distributed_graph& graph_ref, lvid_type lvid, bool is_read):
+            graph_ref(graph_ref), lvid(lvid), isread(is_read) { }
       /// \endcond
 
       /// \brief Compares two vertex_type's for equality. Returns true
@@ -448,17 +454,13 @@ namespace graphlab {
 
       /// \brief Returns a constant reference to the data on the vertex
       const vertex_data_type& data() const {
-        return graph_ref.get_local_graph().vertex_data(lvid);
+        return graph_ref.get_local_graph().vertex_data(lvid, isread);
       }
 
       /// \brief Returns a mutable reference to the data on the vertex
       vertex_data_type& data() {
-        return graph_ref.get_local_graph().vertex_data(lvid);
+        return graph_ref.get_local_graph().vertex_data(lvid, isread);
       }
-
-	  void slice(const dense_bitset& program_running, edge_dir_type gather_dir) {
-	  	graph_ref.get_local_graph().slice(lvid, program_running, gather_dir);
-	  }
 
       /// \brief Returns the number of in edges of the vertex
       size_t num_in_edges() const {
@@ -2658,6 +2660,10 @@ namespace graphlab {
       return local_vertex_type(*this, vid);
     }
 
+	local_vertex_type l_vertex(lvid_type vid,bool is_read) {
+      return local_vertex_type(*this, vid, bool is_read);
+    }
+
     /** \internal
      *\brief Get the Total number of vertex replicas in the graph */
     size_t num_replicas() const { return nreplicas; }
@@ -2885,19 +2891,19 @@ namespace graphlab {
     } // end of synchronize
 
 
-
-
-
-
     /** \internal
      *  vertex type while provides access to local graph vertices.
      */
     struct local_vertex_type {
       distributed_graph& graph_ref;
       lvid_type lvid;
+	  bool isread;
 
       local_vertex_type(distributed_graph& graph_ref, lvid_type lvid):
-            graph_ref(graph_ref), lvid(lvid) { }
+            graph_ref(graph_ref), lvid(lvid),isread(true) { }
+
+	  local_vertex_type(distributed_graph& graph_ref, lvid_type lvid, bool is_read):
+            graph_ref(graph_ref), lvid(lvid),isread(is_read) { }
 
       /// \brief Can be casted from local_vertex_type using an explicit cast
       explicit local_vertex_type(vertex_type v) :graph_ref(v.graph_ref),lvid(v.lvid) { }
@@ -2912,13 +2918,17 @@ namespace graphlab {
 
       /// \brief Returns a reference to the data on the local vertex
       const vertex_data_type& data() const {
-        return graph_ref.get_local_graph().vertex_data(lvid);
+        return graph_ref.get_local_graph().vertex_data(lvid, isread);
       }
 
       /// \brief Returns a reference to the data on the local vertex
       vertex_data_type& data() {
-        return graph_ref.get_local_graph().vertex_data(lvid);
+        return graph_ref.get_local_graph().vertex_data(lvid, isread);
       }
+
+	  rcu_vertex_data& rcu_data() {
+      	return graph_ref.get_local_graph().rcu_vertex(lvid);
+	  }	
 
       /** \brief Returns the number of in edges on the
        *         local graph of this local vertex

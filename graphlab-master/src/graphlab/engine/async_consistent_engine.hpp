@@ -258,6 +258,7 @@ namespace graphlab {
      * See graphlab::distributed_graph
      */
     typedef typename VertexProgram::graph_type graph_type;
+	typedef typename graph_type::rcu_vertex_data rcu_vertex_data;
 
      /**
      * \brief The type used to represent a vertex in the graph.
@@ -1003,6 +1004,66 @@ namespace graphlab {
       vertexlocks[lvid].unlock();
     }
 
+	//after writing , slice the rindex, do collection
+	void rcu_after_apply(local_vertex_type& local_vertex) {
+		rcu_vertex_data& rcu_data = local_vertex.rcu_data();
+		//slice the rindex
+		int oldrindex = rcu_data.rindex ++ ;
+
+		//do collection
+		std::vector<vertex_seq> &vertexseqs = rcu_data.seqnums[oldrindex %RCU_BUFF_NUM];
+		edge_dir_type gather_dir = vprog.gather_edges(context, vertex);
+      	if(gather_dir == OUT_EDGES || gather_dir == ALL_EDGES) {
+			foreach(local_edge_type local_edge, local_vertex.in_edges()) {
+	          edge_type edge(local_edge);
+	          lvid_type a = edge.source().local_id();
+			  rcu_vertex_data a_rcu = edge.source().rcu_data();
+			  if(program_running.get(a) 
+			  	&& a_rcu.rindex == a_rcu.windex){
+			  	vertexseqs.push_back(vertex_seq(a, a_rcu.rindex));
+			  }			  
+	        }
+      	}
+		if(gather_dir == IN_EDGES || gather_dir == ALL_EDGES) {
+			foreach(local_edge_type local_edge, local_vertex.out_edges()) {
+	          edge_type edge(local_edge);
+	          lvid_type a = edge.target().local_id();
+			  rcu_vertex_data a_rcu = edge.target().rcu_data();
+			  if(program_running.get(a) 
+			  	&& a_rcu.rindex == a_rcu.windex){
+			  	vertexseqs.push_back(vertex_seq(a, a_rcu.rindex));
+			  }	
+	        }
+		}
+	}
+
+	//before write, check gc, slice windex
+	void rcu_before_apply(local_vertex_type& local_vertex) {
+		rcu_vertex_data& rcu_data = local_vertex.rcu_data();
+		int windex = vertices[v].windex;
+		int newindex = (1+windex);
+		//waiting for the new place to be unoccupied 
+		std::vector<vertex_seq> &newvertexseqs = vertices[v].seqnums[newindex%4];
+		bool ok = false;
+		while(!ok) {
+			ok = true;
+			for(int i = 0; i < newvertexseqs.size(); i++ ) {
+				if(newvertexseqs[i].valid){
+					lvid_type a= newvertexseqs[i].v;
+					if( newvertexseqs[i].index >= vertices[a].windex) {
+						ok = false;
+						break;
+					}
+					newvertexseqs[i].valid = false;
+				}	
+			}
+		}
+		newvertexseqs.clear();
+		stock[newindex%4] = stock [windex%4];
+		vertices[v].windex = newindex;
+		
+	}
+
 
     /**
      * \internal
@@ -1083,7 +1144,7 @@ namespace graphlab {
      /*                              apply phase                               */
      /**************************************************************************/
      //vertexlocks[lvid].lock();
-     edge_dir_type gather_dir = vprog.gather_edges(context, vertex);
+     rcu_vertex_data rcu_data = local_vertex.rcu_data();
      vertex.slice(program_running, gather_dir);
      vprog.apply(context, vertex, gather_result.value);      
      //vertexlocks[lvid].unlock();

@@ -65,12 +65,12 @@
 
 
 namespace graphlab {
-struct vertex_seq{
-	public:
-		vertex_seq(lvid_type vid, int i):v(vid), index(i){}
+	struct vertex_seq{
+		vertex_seq(lvid_type vid, int i):v(vid), index(i),banished(0){}
 		lvid_type v;
 		int index;
-  };
+		bool banished;
+	};
 
   template<typename VertexData, typename EdgeData>
   class dynamic_local_graph {
@@ -84,11 +84,10 @@ struct vertex_seq{
 
     typedef graphlab::vertex_id_type vertex_id_type;
     typedef graphlab::edge_id_type edge_id_type;
-
+	class rcu_vertex_data;
+	
   private:
     class edge_iterator;
-
-	class rcu_vertex_data;
 
   public:
     typedef boost::iterator_range<edge_iterator> edge_list_type;
@@ -118,42 +117,6 @@ struct vertex_seq{
     static bool is_dynamic() {
       return true;
     }
-
-	void slice(lvid_type v, const dense_bitset& program_running, edge_dir_type gather_dir) {
-		int oldindex = vertices[v].index;
-		//waiting for the new place to be unoccupied 
-		std::vector<vertex_seq> &newvertexseqs = vertices[v].seqnums[(oldindex+1)%4];
-		bool ok = false;
-		while(!ok) {
-			ok = true;
-			for(int i = 0; i < newvertexseqs.size(); i++ ) {
-				lvid_type a= newvertexseqs[i].v;
-				if( newvertexseqs[i].index >= vertices[a].index) {
-					ok = false;
-					break;
-				}
-			}
-		}
-		vertexseqs.clear();
-		
-		vertices[v].slice();
-		
-        std::vector<vertex_seq> &vertexseqs = vertices[v].seqnums[oldindex%4];
-      	if(gather_dir == OUT_EDGES || gather_dir == ALL_EDGES) {
-			foreach(local_edge_type local_edge, in_edges(v)) {
-	          edge_type edge(local_edge);
-	          lvid_type a = edge.source().local_id();
-			  vertexseqs.push_back(vertex_seq(a, vertices[a].index));
-	        }
-      	}
-		if(gather_dir == IN_EDGES || gather_dir == ALL_EDGES) {
-			foreach(local_edge_type local_edge, out_edges(v)) {
-	          edge_type edge(local_edge);
-	          lvid_type a = edge.target().local_id();
-			  vertexseqs.push_back(vertex_seq(a,vertices[a].index));
-	        }
-		}
-	}
 
     /**
      * \brief Resets the local_graph state.
@@ -284,16 +247,27 @@ struct vertex_seq{
     }
 
     /** \brief Returns a reference to the data stored on the vertex v. */
-    VertexData& vertex_data(lvid_type v) {
+    VertexData& vertex_data(lvid_type v, bool is_read) {
       ASSERT_LT(v, vertices.size());
-      return vertices[v].data();
+	  if(isread)
+      	return vertices[v].rdata();
+	  else
+	  	return vertices[v].wdata();
     } // end of data(v)
 
     /** \brief Returns a constant reference to the data stored on the vertex v. */
-    const VertexData& vertex_data(lvid_type v) const {
+    const VertexData& vertex_data(lvid_type v, bool is_read) const {
       ASSERT_LT(v, vertices.size());
-      return vertices[v].data();
+      if(isread)
+      	return vertices[v].rdata();
+	  else
+	  	return vertices[v].wdata();
     } // end of data(v)
+
+	rcu_vertex_data& rcu_vertex(lvid_type v) {
+	  ASSERT_LT(v, vertices.size());
+      return vertices[v];
+	}
 
     /**
      * \brief Finalize the local_graph data structure by
@@ -597,41 +571,44 @@ struct vertex_seq{
 
 
 /////////////////////// Implementation of Helper Class ////////////////////////////
-
+#define RCU_BUFF_NUM 4
 namespace graphlab {
 
 
   template<typename VertexData, typename EdgeData>
   class dynamic_local_graph<VertexData, EdgeData>::rcu_vertex_data {
   	public:
-		rcu_vertex_data(const VertexData& vdata = VertexData()) :index(0) {
+		rcu_vertex_data(const VertexData& vdata = VertexData()) :rindex(0), windex(0) {
 			stock[0] = vdata;
 			seqnums.resize(4);
 		}
-		const VertexData& data() const{
-			return stock[index%4];
+		const VertexData& rdata() const{
+			return stock[rindex%4];
 		}
 
-		VertexData& data() {
-			return stock[index%4];
+		VertexData& rdata() {
+			return stock[rindex%4];
 		}
 
-		void slice() {
-			int temp = (1+index);
-			stock[temp%4] = stock [index%4];
-			index = temp;
+		const VertexData& wdata() const{
+			return stock[windex%4];
 		}
 
+		VertexData& wdata() {
+			return stock[windex%4];
+		}
+		
 		void save(graphlab::oarchive &oarc) const {
-			oarc << stock[0] << stock[1] << stock[2] << stock[3] << index;
+			oarc << stock[0] << stock[1] << stock[2] << stock[3] << rindex << windex;
 		}
 		void load(graphlab::iarchive &iarc) {
-			iarc >> stock[0] >> stock[1] >> stock[2] >> stock[3] >> index;
+			iarc >> stock[0] >> stock[1] >> stock[2] >> stock[3] >> rindex << windex;
 		}
-
+		
 		VertexData stock[4];
 		vector<vector<vertex_seq>> seqnums;
-		int index;
+		int rindex;
+		int windex;
   };
   
   template<typename VertexData, typename EdgeData>
