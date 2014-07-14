@@ -1146,7 +1146,7 @@ namespace graphlab {
      /**************************************************************************/
      //vertexlocks[lvid].lock();
      rcu_vertex_data rcu_data = local_vertex.rcu_data();
-     vertex.slice(program_running, gather_dir);
+     //vertex.slice(program_running, gather_dir);
      vprog.apply(context, vertex, gather_result.value);      
      //vertexlocks[lvid].unlock();
 
