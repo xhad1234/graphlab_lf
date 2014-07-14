@@ -580,7 +580,10 @@ namespace graphlab {
   	public:
 		rcu_vertex_data(const VertexData& vdata = VertexData()) :rindex(0), windex(0) {
 			stock[0] = vdata;
-			seqnums.resize(4);
+			for(int i=0; i<4; i++){
+				std::vector<vertex_seq> padding;
+				seqnums.push_back(padding);
+			}
 		}
 		const VertexData& rdata() const{
 			return stock[rindex%4];
