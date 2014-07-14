@@ -574,14 +574,14 @@ namespace graphlab {
 #define RCU_BUFF_NUM 4
 namespace graphlab {
 
-
+  typedef std::vector<vertex_seq> rcu_seqnum; 
   template<typename VertexData, typename EdgeData>
   class dynamic_local_graph<VertexData, EdgeData>::rcu_vertex_data {
   	public:
 		rcu_vertex_data(const VertexData& vdata = VertexData()) :rindex(0), windex(0) {
 			stock[0] = vdata;
 			for(int i=0; i<4; i++){
-				std::vector<vertex_seq> padding;
+				rcu_seqnum padding;
 				seqnums.push_back(padding);
 			}
 		}
@@ -609,7 +609,7 @@ namespace graphlab {
 		}
 		
 		VertexData stock[4];
-		std::vector<(std::vector<vertex_seq>)> seqnums;
+		std::vector<rcu_seqnum> seqnums;
 		int rindex;
 		int windex;
   };
