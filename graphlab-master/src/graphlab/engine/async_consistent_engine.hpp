@@ -1013,6 +1013,7 @@ namespace graphlab {
 
 		//do collection
 		std::vector<vertex_seq> &vertexseqs = rcu_data.seqnums[oldrindex %RCU_BUFF_NUM];
+		context_type context(*this, graph);
 		edge_dir_type gather_dir = vprog.gather_edges(context, vertex);
       	if(gather_dir == OUT_EDGES || gather_dir == ALL_EDGES) {
 			foreach(local_edge_type local_edge, local_vertex.in_edges()) {

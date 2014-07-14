@@ -157,7 +157,7 @@ namespace graphlab {
         }
         vertices.resize(vid+1);
       }
-      vertices[vid].data() = vdata;
+      vertices[vid].wdata()= vdata;
     } // End of add vertex;
 
     void reserve(size_t num_vertices) {
@@ -253,6 +253,17 @@ namespace graphlab {
       	return vertices[v].rdata();
 	  else
 	  	return vertices[v].wdata();
+    } // end of data(v)
+
+    /** \brief Returns a constant reference to the data stored on the vertex v. */
+    const VertexData& vertex_data(lvid_type v) const {
+      ASSERT_LT(v, vertices.size());
+      return vertices[v].rdata();
+    } // end of data(v)
+
+	 VertexData& vertex_data(lvid_type v) {
+      ASSERT_LT(v, vertices.size())
+      return vertices[v].rdata();
     } // end of data(v)
 
     /** \brief Returns a constant reference to the data stored on the vertex v. */
