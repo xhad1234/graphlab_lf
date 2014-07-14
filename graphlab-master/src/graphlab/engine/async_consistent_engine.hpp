@@ -257,8 +257,8 @@ namespace graphlab {
      *
      * See graphlab::distributed_graph
      */
-    typedef VertexProgram::graph_type graph_type;
-	typedef graph_type::rcu_vertex_data rcu_vertex_data;
+    typedef typename VertexProgram::graph_type graph_type;
+	typedef typename graph_type::rcu_vertex_data rcu_vertex_data;
 
      /**
      * \brief The type used to represent a vertex in the graph.

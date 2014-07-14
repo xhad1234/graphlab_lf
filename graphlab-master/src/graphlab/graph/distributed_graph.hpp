@@ -385,7 +385,7 @@ namespace graphlab {
     typedef graphlab::local_graph<VertexData, EdgeData> local_graph_type;
 #endif
 
-	typedef local_graph_type::rcu_vertex_data rcu_vertex_data;
+	typedef typename local_graph_type::rcu_vertex_data rcu_vertex_data;
     typedef graphlab::distributed_graph<VertexData, EdgeData> graph_type;
 
     typedef std::vector<simple_spinlock> lock_manager_type;
