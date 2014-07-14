@@ -2661,7 +2661,7 @@ namespace graphlab {
     }
 
 	local_vertex_type l_vertex(lvid_type vid,bool is_read) {
-      return local_vertex_type(*this, vid, bool is_read);
+      return local_vertex_type(*this, vid, is_read);
     }
 
     /** \internal

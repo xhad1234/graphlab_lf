@@ -606,7 +606,7 @@ namespace graphlab {
 		}
 		
 		VertexData stock[4];
-		std::vector<std::vector<vertex_seq>> seqnums;
+		std::vector<(std::vector<vertex_seq>)> seqnums;
 		int rindex;
 		int windex;
   };
