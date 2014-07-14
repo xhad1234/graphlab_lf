@@ -262,7 +262,7 @@ namespace graphlab {
     } // end of data(v)
 
 	 VertexData& vertex_data(lvid_type v) {
-      ASSERT_LT(v, vertices.size())
+      ASSERT_LT(v, vertices.size());
       return vertices[v].rdata();
     } // end of data(v)
 
