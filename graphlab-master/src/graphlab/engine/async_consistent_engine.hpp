@@ -1008,6 +1008,7 @@ namespace graphlab {
 	void rcu_after_apply(local_vertex_type& local_vertex) {
 		rcu_vertex_data& rcu_data = local_vertex.rcu_data();
 		//slice the rindex
+		vertex_type vertex(local_vertex);
 		int oldrindex = rcu_data.rindex ++ ;
 
 		//do collection
@@ -1040,10 +1041,10 @@ namespace graphlab {
 	//before write, check gc, slice windex
 	void rcu_before_apply(local_vertex_type& local_vertex) {
 		rcu_vertex_data& rcu_data = local_vertex.rcu_data();
-		int windex = vertices[v].windex;
+		int windex = rcu_data.windex;
 		int newindex = (1+windex);
 		//waiting for the new place to be unoccupied 
-		std::vector<vertex_seq> &newvertexseqs = vertices[v].seqnums[newindex%4];
+		std::vector<vertex_seq> &newvertexseqs = rcu_data.seqnums[newindex%4];
 		bool ok = false;
 		while(!ok) {
 			ok = true;

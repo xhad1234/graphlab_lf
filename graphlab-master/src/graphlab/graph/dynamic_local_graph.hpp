@@ -247,7 +247,7 @@ namespace graphlab {
     }
 
     /** \brief Returns a reference to the data stored on the vertex v. */
-    VertexData& vertex_data(lvid_type v, bool is_read) {
+    VertexData& vertex_data(lvid_type v, bool isread) {
       ASSERT_LT(v, vertices.size());
 	  if(isread)
       	return vertices[v].rdata();
@@ -256,7 +256,7 @@ namespace graphlab {
     } // end of data(v)
 
     /** \brief Returns a constant reference to the data stored on the vertex v. */
-    const VertexData& vertex_data(lvid_type v, bool is_read) const {
+    const VertexData& vertex_data(lvid_type v, bool isread) const {
       ASSERT_LT(v, vertices.size());
       if(isread)
       	return vertices[v].rdata();
@@ -606,7 +606,7 @@ namespace graphlab {
 		}
 		
 		VertexData stock[4];
-		vector<vector<vertex_seq>> seqnums;
+		std::vector<std::vector<vertex_seq>> seqnums;
 		int rindex;
 		int windex;
   };
