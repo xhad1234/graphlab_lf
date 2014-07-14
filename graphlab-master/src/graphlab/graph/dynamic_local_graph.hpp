@@ -66,10 +66,10 @@
 
 namespace graphlab {
 	struct vertex_seq{
-		vertex_seq(lvid_type vid, int i):v(vid), index(i),banished(0){}
+		vertex_seq(lvid_type vid, int i):v(vid), index(i),valid(true){}
 		lvid_type v;
 		int index;
-		bool banished;
+		bool valid;
 	};
 
   template<typename VertexData, typename EdgeData>

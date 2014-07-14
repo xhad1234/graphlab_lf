@@ -1005,7 +1005,7 @@ namespace graphlab {
     }
 
 	//after writing , slice the rindex, do collection
-	void rcu_after_apply(local_vertex_type& local_vertex) {
+	void rcu_after_apply(local_vertex_type& local_vertex, vertex_program_type& vprog) {
 		rcu_vertex_data& rcu_data = local_vertex.rcu_data();
 		//slice the rindex
 		vertex_type vertex(local_vertex);
@@ -1051,7 +1051,7 @@ namespace graphlab {
 			for(int i = 0; i < newvertexseqs.size(); i++ ) {
 				if(newvertexseqs[i].valid){
 					lvid_type a= newvertexseqs[i].v;
-					if( newvertexseqs[i].index >= vertices[a].windex) {
+					if( newvertexseqs[i].index >= graph.l_vertex(a).rcu_data().windex) {
 						ok = false;
 						break;
 					}
@@ -1060,8 +1060,8 @@ namespace graphlab {
 			}
 		}
 		newvertexseqs.clear();
-		stock[newindex%4] = stock [windex%4];
-		vertices[v].windex = newindex;
+		rcu_data.stock[newindex%4] = rcu_data.stock [windex%4];
+		rcu_data.windex = newindex;
 		
 	}
 
