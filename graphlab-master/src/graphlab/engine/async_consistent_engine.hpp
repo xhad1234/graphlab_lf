@@ -897,13 +897,14 @@ namespace graphlab {
 	          lvid_type a = edge.source().local_id();
 			  rcu_vertex_data a_rcu = edge.source().rcu_data();
 			  //pre gc
-
-			  logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_source vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
-			  if(newvertexseqs[i].v == a ){
-			  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
-					newvertexseqs[i].valid = false;
-				}
-				i++;
+			  if(i<newvertexseqs.size()){
+				  logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_source vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
+				  if(newvertexseqs[i].v == a ){
+				  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
+						newvertexseqs[i].valid = false;
+					}
+					i++;
+				  }
 			  }
 			  if(program_running.get(a) 
 			  	&& a_rcu.rindex == a_rcu.windex){
@@ -917,13 +918,14 @@ namespace graphlab {
 	          lvid_type a = edge.target().local_id();
 			  rcu_vertex_data a_rcu = edge.target().rcu_data();
 			  //pre gc
-
-			  logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_target vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
-			  if(newvertexseqs[i].v == a ){
-			  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
-					newvertexseqs[i].valid = false;
-				}
-				i++;
+			  if(i<newvertexseqs.size()){
+				  logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_target vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
+				  if(newvertexseqs[i].v == a ){
+				  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
+						newvertexseqs[i].valid = false;
+					}
+					i++;
+				  }
 			  }
 			  if(program_running.get(a) 
 			  	&& a_rcu.rindex == a_rcu.windex){
