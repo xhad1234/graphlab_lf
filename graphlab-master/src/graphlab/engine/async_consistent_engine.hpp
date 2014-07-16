@@ -890,13 +890,15 @@ namespace graphlab {
 		
 		context_type context(*this, graph);
 		edge_dir_type gather_dir = vprog.gather_edges(context, vertex);
-		int i = 0;
+		unsigned i = 0;
       	if(gather_dir == OUT_EDGES || gather_dir == ALL_EDGES) {
 			foreach(local_edge_type local_edge, local_vertex.in_edges()) {
 	          edge_type edge(local_edge);
 	          lvid_type a = edge.source().local_id();
 			  rcu_vertex_data a_rcu = edge.source().rcu_data();
 			  //pre gc
+
+			  logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_source vid: " << a << " , vertex_seq vid: "newvertexseqs[i].v << std::endl;
 			  if(newvertexseqs[i].v == a ){
 			  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
 					newvertexseqs[i].valid = false;
@@ -915,6 +917,8 @@ namespace graphlab {
 	          lvid_type a = edge.target().local_id();
 			  rcu_vertex_data a_rcu = edge.target().rcu_data();
 			  //pre gc
+
+			  logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_target vid: " << a << " , vertex_seq vid: "newvertexseqs[i].v << std::endl;
 			  if(newvertexseqs[i].v == a ){
 			  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
 					newvertexseqs[i].valid = false;
