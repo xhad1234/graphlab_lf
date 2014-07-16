@@ -939,7 +939,7 @@ namespace graphlab {
 			  }	
 	        }
 		}
-		logstream(LOG_INFO) << "rcu after reply, i: " <<i << "edegs num: "<< n <<"gc num:" <<gcn++ << std::endl;   
+		logstream(LOG_INFO) << "rcu after reply, i: " <<i <<",seq size:"<<newvertexseqs.size()<< ",edegs num: "<< n <<",gc num:" <<gcn++ << std::endl;   
 	}
 
 	//before write, check gc, slice windex
