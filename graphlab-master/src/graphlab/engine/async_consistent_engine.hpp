@@ -891,17 +891,21 @@ namespace graphlab {
 		context_type context(*this, graph);
 		edge_dir_type gather_dir = vprog.gather_edges(context, vertex);
 		unsigned i = 0;
+		unsigned n = 0;
+		unsigned gcn = 0;
       	if(gather_dir == OUT_EDGES || gather_dir == ALL_EDGES) {
 			foreach(local_edge_type local_edge, local_vertex.in_edges()) {
+			  n++;	
 	          edge_type edge(local_edge);
 	          lvid_type a = edge.source().local_id();
 			  rcu_vertex_data a_rcu = edge.source().rcu_data();
 			  //pre gc
 			  if(i<newvertexseqs.size()){
-				  logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_source vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
+				  //logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_source vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
 				  if(newvertexseqs[i].v == a ){
 				  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
 						newvertexseqs[i].valid = false;
+						gcn++;
 					}
 					i++;
 				  }
@@ -914,15 +918,17 @@ namespace graphlab {
       	}
 		if(gather_dir == IN_EDGES || gather_dir == ALL_EDGES) {
 			foreach(local_edge_type local_edge, local_vertex.out_edges()) {
+			  n++;
 	          edge_type edge(local_edge);
 	          lvid_type a = edge.target().local_id();
 			  rcu_vertex_data a_rcu = edge.target().rcu_data();
 			  //pre gc
 			  if(i<newvertexseqs.size()){
-				  logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_target vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
+				  //logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_target vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
 				  if(newvertexseqs[i].v == a ){
 				  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
 						newvertexseqs[i].valid = false;
+						gcn++;
 					}
 					i++;
 				  }
@@ -933,6 +939,7 @@ namespace graphlab {
 			  }	
 	        }
 		}
+		logstream(LOG_INFO) << "rcu after reply, i: " <<i << "edegs num: "<< n <<"gc num:" <<gcn++ << std::endl;   
 	}
 
 	//before write, check gc, slice windex
