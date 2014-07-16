@@ -885,14 +885,24 @@ namespace graphlab {
 		
 
 		//do collection
-		std::vector<vertex_seq> &vertexseqs = rcu_data.seqnums[oldrindex %RCU_BUFF_NUM];
+		std::vector<vertex_seq> &vertexseqs = rcu_data.seqnums[oldrindex % RCU_BUFF_NUM];
+		std::vector<vertex_seq> &newvertexseqs = rcu_data.seqnums[(rcu_data.rindex+1) % RCU_BUFF_NUM];
+		
 		context_type context(*this, graph);
 		edge_dir_type gather_dir = vprog.gather_edges(context, vertex);
+		int i = 0;
       	if(gather_dir == OUT_EDGES || gather_dir == ALL_EDGES) {
 			foreach(local_edge_type local_edge, local_vertex.in_edges()) {
 	          edge_type edge(local_edge);
 	          lvid_type a = edge.source().local_id();
 			  rcu_vertex_data a_rcu = edge.source().rcu_data();
+			  //pre gc
+			  if(newvertexseqs[i].v == a ){
+			  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
+					newvertexseqs[i].valid = false;
+				}
+				i++;
+			  }
 			  if(program_running.get(a) 
 			  	&& a_rcu.rindex == a_rcu.windex){
 			  	vertexseqs.push_back(vertex_seq(a, a_rcu.rindex));
@@ -904,6 +914,13 @@ namespace graphlab {
 	          edge_type edge(local_edge);
 	          lvid_type a = edge.target().local_id();
 			  rcu_vertex_data a_rcu = edge.target().rcu_data();
+			  //pre gc
+			  if(newvertexseqs[i].v == a ){
+			  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
+					newvertexseqs[i].valid = false;
+				}
+				i++;
+			  }
 			  if(program_running.get(a) 
 			  	&& a_rcu.rindex == a_rcu.windex){
 			  	vertexseqs.push_back(vertex_seq(a, a_rcu.rindex));
