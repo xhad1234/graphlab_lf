@@ -898,7 +898,7 @@ namespace graphlab {
 			  rcu_vertex_data a_rcu = edge.source().rcu_data();
 			  //pre gc
 
-			  logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_source vid: " << a << " , vertex_seq vid: "newvertexseqs[i].v << std::endl;
+			  logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_source vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
 			  if(newvertexseqs[i].v == a ){
 			  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
 					newvertexseqs[i].valid = false;
@@ -918,7 +918,7 @@ namespace graphlab {
 			  rcu_vertex_data a_rcu = edge.target().rcu_data();
 			  //pre gc
 
-			  logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_target vid: " << a << " , vertex_seq vid: "newvertexseqs[i].v << std::endl;
+			  logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_target vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
 			  if(newvertexseqs[i].v == a ){
 			  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
 					newvertexseqs[i].valid = false;
