@@ -935,7 +935,7 @@ namespace graphlab {
 					i++;
 				  }
 			  }
-			  logstream(LOG_INFO) << " a id:"<<a<<" , is running:"<< program_running.get(a) <<" , rindex:"<<a_rcu.rindex <<" , windex:"<<a_rcu.windex<<std::endl;
+			  //logstream(LOG_INFO) << " a id:"<<a<<" , is running:"<< program_running.get(a) <<" , rindex:"<<a_rcu.rindex <<" , windex:"<<a_rcu.windex<<std::endl;
 			  if(program_running.get(a) 
 			  	&& a_rcu.rindex == a_rcu.windex){
 			  	coln++;
@@ -943,7 +943,7 @@ namespace graphlab {
 			  }	
 	        }
 		}
-		logstream(LOG_INFO) << "rcu after reply, matched i: " <<i <<" , seq size:"<<newvertexseqs.size()<< " , edegs num: "<< n <<" , gc num:" <<gcn << " , clo num:"<<coln<<std::endl;   
+		//logstream(LOG_INFO) << "rcu after reply, matched i: " <<i <<" , seq size:"<<newvertexseqs.size()<< " , edegs num: "<< n <<" , gc num:" <<gcn << " , clo num:"<<coln<<std::endl;   
 	}
 
 	//before write, check gc, slice windex
@@ -1081,6 +1081,7 @@ namespace graphlab {
       if (someone_else_running) {
         // bad. someone else is here.
         // drop it into the message array
+        logstream(LOG_INFO) << "get_exclusive_access_to_vertex has someone else.\n";
         messages.add(lvid, msg);
         hasnext.set_bit(lvid);
       } 
