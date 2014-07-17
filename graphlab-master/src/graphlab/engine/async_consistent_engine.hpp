@@ -935,6 +935,7 @@ namespace graphlab {
 					i++;
 				  }
 			  }
+			  logstream(LOG_INFO) << " a id:"<<a<<" , is running:"<< program_running.get(a) <<" , rindex:"<<a_rcu.rindex <<" , windex:"<<a_rcu.windex<<std::endl;
 			  if(program_running.get(a) 
 			  	&& a_rcu.rindex == a_rcu.windex){
 			  	coln++;
