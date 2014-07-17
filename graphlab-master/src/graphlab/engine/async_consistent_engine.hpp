@@ -893,6 +893,7 @@ namespace graphlab {
 		unsigned i = 0;
 		unsigned n = 0;
 		unsigned gcn = 0;
+		unsigned coln = 0;
       	if(gather_dir == OUT_EDGES || gather_dir == ALL_EDGES) {
 			foreach(local_edge_type local_edge, local_vertex.in_edges()) {
 			  n++;	
@@ -912,6 +913,7 @@ namespace graphlab {
 			  }
 			  if(program_running.get(a) 
 			  	&& a_rcu.rindex == a_rcu.windex){
+			  	coln++;
 			  	vertexseqs.push_back(vertex_seq(a, a_rcu.rindex));
 			  }			  
 	        }
@@ -935,11 +937,12 @@ namespace graphlab {
 			  }
 			  if(program_running.get(a) 
 			  	&& a_rcu.rindex == a_rcu.windex){
+			  	coln++;
 			  	vertexseqs.push_back(vertex_seq(a, a_rcu.rindex));
 			  }	
 	        }
 		}
-		logstream(LOG_INFO) << "rcu after reply, i: " <<i <<",seq size:"<<newvertexseqs.size()<< ",edegs num: "<< n <<",gc num:" <<gcn++ << std::endl;   
+		logstream(LOG_INFO) << "rcu after reply, matched i: " <<i <<" , seq size:"<<newvertexseqs.size()<< " , edegs num: "<< n <<" , gc num:" <<gcn << " , clo num:"<<coln<<std::endl;   
 	}
 
 	//before write, check gc, slice windex
