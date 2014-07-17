@@ -1081,7 +1081,7 @@ namespace graphlab {
       if (someone_else_running) {
         // bad. someone else is here.
         // drop it into the message array
-        logstream(LOG_INFO) << "get_exclusive_access_to_vertex has someone else.\n";
+        //logstream(LOG_INFO) << "get_exclusive_access_to_vertex has someone else\n";
         messages.add(lvid, msg);
         hasnext.set_bit(lvid);
       } 
