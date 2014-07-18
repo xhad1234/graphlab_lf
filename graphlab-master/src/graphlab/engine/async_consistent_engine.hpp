@@ -899,7 +899,8 @@ namespace graphlab {
 			  n++;	
 	          edge_type edge(local_edge);
 	          lvid_type a = edge.source().local_id();
-			  rcu_vertex_data a_rcu = edge.source().rcu_data();
+			  local_vertex_type a_lvertex(graph.l_vertex(a));
+			  rcu_vertex_data a_rcu = a_lvertex.rcu_data();
 			  //pre gc
 			  if(i<newvertexseqs.size()){
 				  //logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_source vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
@@ -923,7 +924,8 @@ namespace graphlab {
 			  n++;
 	          edge_type edge(local_edge);
 	          lvid_type a = edge.target().local_id();
-			  rcu_vertex_data a_rcu = edge.target().rcu_data();
+			  local_vertex_type a_lvertex(graph.l_vertex(a));
+			  rcu_vertex_data a_rcu = a_lvertex.rcu_data();
 			  //pre gc
 			  if(i<newvertexseqs.size()){
 				  //logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_target vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
@@ -1191,9 +1193,8 @@ namespace graphlab {
      rcu_vertex_data rcu_data = local_vertex.rcu_data();
 	 rcu_before_apply(local_vertex);
 	 vertex.isread=false;
-     //vertex.slice(program_running, gather_dir);
-     vertex.isread =true;
      vprog.apply(context, vertex, gather_result.value);
+	 vertex.isread =true;
 	 rcu_after_apply(local_vertex,vprog);
 	 //vertexlocks[lvid].unlock();
 
