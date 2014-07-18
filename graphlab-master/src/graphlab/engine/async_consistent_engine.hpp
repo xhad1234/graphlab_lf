@@ -964,8 +964,8 @@ namespace graphlab {
 					local_vertex_type a_lvertex(graph.l_vertex(a));
 			  		rcu_vertex_data& a_rcu = a_lvertex.rcu_data();
 					if( newvertexseqs[i].index >= a_rcu.windex
-						|| program_running.get(a) ) {
-						logstream(LOG_INFO) << "locked " << std::endl;
+						&& program_running.get(a) ) {
+						logstream(LOG_INFO) << "locked :" <<a<<" , record index:"<<newvertexseqs[i]<<" z aindex:"<<a_rcu.windex<< std::endl;
 						ok = false;
 						break;
 					}
