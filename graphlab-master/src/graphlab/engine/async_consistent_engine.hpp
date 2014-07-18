@@ -905,7 +905,7 @@ namespace graphlab {
 			  if(i<newvertexseqs.size()){
 				  //logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_source vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
 				  if(newvertexseqs[i].v == a ){
-				  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
+				  	if(newvertexseqs[i].valid && (newvertexseqs[i].index < a_rcu.windex|| program_running.get(a))){
 						newvertexseqs[i].valid = false;
 						gcn++;
 					}
@@ -930,7 +930,7 @@ namespace graphlab {
 			  if(i<newvertexseqs.size()){
 				  //logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_target vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
 				  if(newvertexseqs[i].v == a ){
-				  	if(newvertexseqs[i].valid && newvertexseqs[i].index < a_rcu.windex){
+				  	if(newvertexseqs[i].valid && (newvertexseqs[i].index < a_rcu.windex|| program_running.get(a))){
 						newvertexseqs[i].valid = false;
 						gcn++;
 					}
@@ -961,7 +961,11 @@ namespace graphlab {
 			for(int i = 0; i < newvertexseqs.size(); i++ ) {
 				if(newvertexseqs[i].valid){
 					lvid_type a= newvertexseqs[i].v;
-					if( newvertexseqs[i].index >= graph.l_vertex(a).rcu_data().windex) {
+					local_vertex_type a_lvertex(graph.l_vertex(a));
+			  		rcu_vertex_data& a_rcu = a_lvertex.rcu_data();
+					if( newvertexseqs[i].index >= a_rcu.windex
+						|| program_running.get(a) ) {
+						logstream(LOG_INFO) << "locked " << std::endl;
 						ok = false;
 						break;
 					}
