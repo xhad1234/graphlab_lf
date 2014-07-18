@@ -966,7 +966,7 @@ namespace graphlab {
 					if( newvertexseqs[i].index >= a_rcu.windex
 						&& program_running.get(a) ) {
 						unsigned aint = a; 
-						logstream(LOG_INFO) << "locked :" <<a<<" , record index:"<<newvertexseqs[i]<<" z aindex:"<<a_rcu.windex<< std::endl;
+						logstream(LOG_INFO) << "locked :" <<aint<<" , record index:"<<newvertexseqs[i]<<" z aindex:"<<a_rcu.windex<< std::endl;
 						ok = false;
 						break;
 					}
