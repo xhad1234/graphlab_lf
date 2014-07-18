@@ -899,7 +899,7 @@ namespace graphlab {
 			  n++;	
 	          edge_type edge(local_edge);
 	          lvid_type a = edge.source().local_id();
-			  local_vertex_type& a_lvertex(graph.l_vertex(a));
+			  local_vertex_type a_lvertex(graph.l_vertex(a));
 			  rcu_vertex_data& a_rcu = a_lvertex.rcu_data();
 			  //pre gc
 			  if(i<newvertexseqs.size()){
@@ -924,7 +924,7 @@ namespace graphlab {
 			  n++;
 	          edge_type edge(local_edge);
 	          lvid_type a = edge.target().local_id();
-			  local_vertex_type& a_lvertex(graph.l_vertex(a));
+			  local_vertex_type a_lvertex(graph.l_vertex(a));
 			  rcu_vertex_data& a_rcu = a_lvertex.rcu_data();
 			  //pre gc
 			  if(i<newvertexseqs.size()){
