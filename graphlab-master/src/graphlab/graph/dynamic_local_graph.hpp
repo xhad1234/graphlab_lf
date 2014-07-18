@@ -613,10 +613,12 @@ namespace graphlab {
 		}
 		
 		void save(graphlab::oarchive &oarc) const {
-			oarc << stock[0] << stock[1] << stock[2] << stock[3] << rindex << windex;
+			//oarc << stock[0] << stock[1] << stock[2] << stock[3] << rindex << windex;
+			oarc << stock[rindex%4];
 		}
 		void load(graphlab::iarchive &iarc) {
-			iarc >> stock[0] >> stock[1] >> stock[2] >> stock[3] >> rindex >> windex;
+			//iarc >> stock[0] >> stock[1] >> stock[2] >> stock[3] >> rindex >> windex;
+			oarc >> stock[rindex%4];
 		}
 		
 		VertexData stock[4];
