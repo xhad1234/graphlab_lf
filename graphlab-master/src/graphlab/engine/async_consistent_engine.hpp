@@ -899,8 +899,8 @@ namespace graphlab {
 			  n++;	
 	          edge_type edge(local_edge);
 	          lvid_type a = edge.source().local_id();
-			  local_vertex_type a_lvertex(graph.l_vertex(a));
-			  rcu_vertex_data a_rcu = a_lvertex.rcu_data();
+			  local_vertex_type& a_lvertex(graph.l_vertex(a));
+			  rcu_vertex_data& a_rcu = a_lvertex.rcu_data();
 			  //pre gc
 			  if(i<newvertexseqs.size()){
 				  //logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_source vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
@@ -924,8 +924,8 @@ namespace graphlab {
 			  n++;
 	          edge_type edge(local_edge);
 	          lvid_type a = edge.target().local_id();
-			  local_vertex_type a_lvertex(graph.l_vertex(a));
-			  rcu_vertex_data a_rcu = a_lvertex.rcu_data();
+			  local_vertex_type& a_lvertex(graph.l_vertex(a));
+			  rcu_vertex_data& a_rcu = a_lvertex.rcu_data();
 			  //pre gc
 			  if(i<newvertexseqs.size()){
 				  //logstream(LOG_INFO) <<"i: "<< i << " , Pre GC, edge_target vid: " << a << " , vertex_seq vid: "<<newvertexseqs[i].v << std::endl;
