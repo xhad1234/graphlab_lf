@@ -618,7 +618,7 @@ namespace graphlab {
 		}
 		void load(graphlab::iarchive &iarc) {
 			//iarc >> stock[0] >> stock[1] >> stock[2] >> stock[3] >> rindex >> windex;
-			oarc >> stock[rindex%4];
+			iarc >> stock[rindex%4];
 		}
 		
 		VertexData stock[4];
