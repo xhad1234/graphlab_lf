@@ -41,7 +41,8 @@ void fifo_scheduler::set_options(const graphlab_options& opts) {
 // Initializes the internal datastructures
 void fifo_scheduler::initialize_data_structures() {
   current_queue.resize(ncpus, 0);
-  size_t nqueues = std::max(multi * current_queue.size(), size_t(1));
+  //size_t nqueues = std::max(multi * current_queue.size(), size_t(1));
+  size_t nqueues =1;
   queues.resize(nqueues);
   locks.resize(nqueues);
   vertex_is_scheduled.resize(num_vertices);
