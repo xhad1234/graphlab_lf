@@ -623,7 +623,7 @@ namespace graphlab {
 		std::vector<rcu_seqnum> seqnums;
 		int rindex;
 		int windex;
-  };
+	}__attribute__((aligned(64)));
   
   template<typename VertexData, typename EdgeData>
   class dynamic_local_graph<VertexData, EdgeData>::vertex_type {
