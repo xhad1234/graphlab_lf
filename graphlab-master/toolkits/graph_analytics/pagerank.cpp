@@ -24,7 +24,7 @@
 #include <string>
 #include <fstream>
 
-#include <usr/local/include/google/profiler.h>
+#include <google/profiler.h>
 #include <graphlab.hpp>
 // #include <graphlab/macros_def.hpp>
 
@@ -168,6 +168,7 @@ double pagerank_sum(graph_type::vertex_type v) {
   return v.data();
 }
 
+
 int main(int argc, char** argv) {
   // Initialize control plain using mpi
   graphlab::mpi_tools::init(argc, argv);
@@ -249,8 +250,7 @@ int main(int argc, char** argv) {
   // Running The Engine -------------------------------------------------------
   graphlab::omni_engine<pagerank> engine(dc, graph, exec_type, clopts);
   engine.signal_all();
-  char *filename = "engine.prof";
-  ProfilerStop(filename);
+  ProfilerStart("myprof");
   engine.start();
   ProfilerStop();
   const double runtime = engine.elapsed_seconds();

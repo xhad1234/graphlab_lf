@@ -95,6 +95,8 @@ install(CODE "execute_process(COMMAND ./scripts/install_deps.sh
 
 # set(EXTERNAL_PROJECT_FLAGS
 #   "-I${GraphLab_SOURCE_DIR}/deps/local/include -L${GraphLab_SOURCE_DIR}/deps/local/lib")
+ set(EXTERNAL_PROJECT_FLAGS
+    "-I /home/tools/gperftools/include -I /home/tools/libunwind/include -L/home/tools/gperftools/lib/ -lprofiler  -L/home/tools/libunwind/lib/ -lunwind")
 
 
 
