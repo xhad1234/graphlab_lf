@@ -99,7 +99,7 @@
 
 #include <graphlab.hpp>
 #include <graphlab/macros_def.hpp>
-
+#include <google/profiler.h>
 
 
 
@@ -651,7 +651,9 @@ int main(int argc, char** argv) {
   engine_type engine(dc, graph, exec_type, clopts);
   engine.signal_all();
   graphlab::timer timer;
+  //ProfilerStart("lbp.prof");
   engine.start();  
+  //ProfilerStop();
   const double runtime = timer.current_time();
     dc.cout() 
     << "----------------------------------------------------------" << std::endl
