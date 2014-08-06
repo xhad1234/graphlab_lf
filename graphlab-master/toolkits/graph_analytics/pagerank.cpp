@@ -250,7 +250,7 @@ int main(int argc, char** argv) {
   // Running The Engine -------------------------------------------------------
   graphlab::omni_engine<pagerank> engine(dc, graph, exec_type, clopts);
   engine.signal_all();
-  ProfilerStart("myprof");
+  ProfilerStart("my.prof");
   engine.start();
   ProfilerStop();
   const double runtime = engine.elapsed_seconds();

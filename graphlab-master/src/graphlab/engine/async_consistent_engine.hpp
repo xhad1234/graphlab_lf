@@ -445,7 +445,7 @@ namespace graphlab {
         engine_start_time(timer::approx_time_seconds()), force_stop(false) {
       rmi.barrier();
 
-      nfibers = 10000;
+      nfibers = 64;
       stacksize = 16384;
       use_cache = false;
       factorized_consistency = true;
@@ -823,6 +823,7 @@ namespace graphlab {
                      message_type &msg) {
       if (timer::approx_time_seconds() - engine_start_time > timed_termination) {
         termination_reason = execution_status::TIMEOUT;
+		logstream(LOG_INFO)  << "Time out for :" << timed_termination <<",total time:"<<timer::approx_time_seconds() - engine_start_time<< std::endl;
         force_stop = true;
       }
       fiber_control::yield();
@@ -1001,11 +1002,11 @@ namespace graphlab {
         foreach(local_edge_type local_edge, local_vertex.in_edges()) {
           edge_type edge(local_edge);
           lvid_type a = edge.source().local_id(), b = edge.target().local_id();
-          vertexlocks[std::min(a,b)].lock();
-          vertexlocks[std::max(a,b)].lock();
+          //vertexlocks[std::min(a,b)].lock();
+          //vertexlocks[std::max(a,b)].lock();
           accum += vprog.gather(context, vertex, edge);
-         vertexlocks[a].unlock();
-          vertexlocks[b].unlock();
+         //vertexlocks[a].unlock();
+         // vertexlocks[b].unlock();
         }
       } 
       // do out edges
@@ -1013,11 +1014,11 @@ namespace graphlab {
         foreach(local_edge_type local_edge, local_vertex.out_edges()) {
           edge_type edge(local_edge);
           lvid_type a = edge.source().local_id(), b = edge.target().local_id();
-          vertexlocks[std::min(a,b)].lock();
-          vertexlocks[std::max(a,b)].lock();
+          //vertexlocks[std::min(a,b)].lock();
+          //vertexlocks[std::max(a,b)].lock();
           accum += vprog.gather(context, vertex, edge);
-          vertexlocks[a].unlock();
-         vertexlocks[b].unlock();
+         // vertexlocks[a].unlock();
+         //vertexlocks[b].unlock();
         }
       } 
       if (use_cache) {
@@ -1037,22 +1038,22 @@ namespace graphlab {
         foreach(local_edge_type local_edge, local_vertex.in_edges()) {
           edge_type edge(local_edge);
           lvid_type a = edge.source().local_id(), b = edge.target().local_id();
-          vertexlocks[std::min(a,b)].lock();
-          vertexlocks[std::max(a,b)].lock();
+          //vertexlocks[std::min(a,b)].lock();
+          //vertexlocks[std::max(a,b)].lock();
           vprog.scatter(context, vertex, edge);
-          vertexlocks[a].unlock();
-          vertexlocks[b].unlock();
+         // vertexlocks[a].unlock();
+         // vertexlocks[b].unlock();
         }
       } 
       if(scatter_dir == OUT_EDGES || scatter_dir == ALL_EDGES) {
         foreach(local_edge_type local_edge, local_vertex.out_edges()) {
           edge_type edge(local_edge);
           lvid_type a = edge.source().local_id(), b = edge.target().local_id();
-          vertexlocks[std::min(a,b)].lock();
-          vertexlocks[std::max(a,b)].lock();
+          //vertexlocks[std::min(a,b)].lock();
+          //vertexlocks[std::max(a,b)].lock();
           vprog.scatter(context, vertex, edge);
-          vertexlocks[a].unlock();
-          vertexlocks[b].unlock();
+          //vertexlocks[a].unlock();
+          //vertexlocks[b].unlock();
         }
       } 
 
@@ -1069,11 +1070,11 @@ namespace graphlab {
       vertex_program_type vprog = vprog_;
       lvid_type lvid = graph.local_vid(vid);
 	  local_vertex_type local_vertex(graph.l_vertex(lvid));
-      vertexlocks[lvid].lock();
+      //vertexlocks[lvid].lock();
       rcu_before_apply(local_vertex);
       local_vertex.data() = newdata;
 	  rcu_after_apply(local_vertex, vprog);
-      vertexlocks[lvid].unlock();
+      //vertexlocks[lvid].unlock();
       perform_scatter_local(lvid, vprog);
     }
 
@@ -1247,7 +1248,7 @@ namespace graphlab {
             task_time->current_time();
         task_time->~timer();
       }
-      programs_executed.inc(); 
+      //programs_executed.inc(); 
     }
 
 
