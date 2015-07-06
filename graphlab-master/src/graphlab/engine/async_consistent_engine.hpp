@@ -29,6 +29,7 @@
 #include <deque>
 #include <map>
 #include <boost/bind.hpp>
+//#include <google/profiler.h>
 
 #include <graphlab/scheduler/ischeduler.hpp>
 #include <graphlab/scheduler/scheduler_factory.hpp>
@@ -71,7 +72,7 @@ namespace graphlab {
    *
    *
    * \tparam VertexProgram
-   * The user defined vertex program type which should implement the
+   * The user defined vertex purogram type which should implement the
    * \ref graphlab::ivertex_program interface.
    *
    * ### Execution Semantics
@@ -878,6 +879,7 @@ namespace graphlab {
 	
 	//after writing , slice the rindex, do collection
 	void rcu_after_apply(local_vertex_type& local_vertex, vertex_program_type& vprog) {
+		//ProfilerStart("my.prof");
 		rcu_vertex_data& rcu_data = local_vertex.rcu_data();
 		//slice the rindex
 		vertex_type vertex(local_vertex);
@@ -946,11 +948,13 @@ namespace graphlab {
 			  }	
 	        }
 		}
+		//ProfilerStop();
 		//logstream(LOG_INFO) << "rcu after reply, matched i: " <<i <<" , seq size:"<<newvertexseqs.size()<< " , edegs num: "<< n <<" , gc num:" <<gcn << " , clo num:"<<coln<<std::endl;   
 	}
 
 	//before write, check gc, slice windex
 	void rcu_before_apply(local_vertex_type& local_vertex) {
+		//ProfilerStart("my.prof");
 		rcu_vertex_data& rcu_data = local_vertex.rcu_data();
 		int windex = rcu_data.windex;
 		int newindex = (1+windex);
@@ -979,7 +983,7 @@ namespace graphlab {
 		rcu_data.stock[newindex%4] = rcu_data.stock [windex%4];
 		rcu_data.windex = newindex;
 		local_vertex.isread = false;
-		
+		//ProfilerStop();
 	}
 
     conditional_gather_type perform_gather(vertex_id_type vid,
